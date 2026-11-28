@@ -56,9 +56,9 @@ preCommit = dk.preCommit {
 
 ### Use a project configuration file
 
-- **Prettier.** A [standalone root config](https://prettier.io/docs/configuration) replaces the [shared config](../.prettierrc.json). The hook checks `.prettierrc.json` first, then follows Prettier's order for standalone files. It disables EditorConfig. Use native discovery for manifest settings or nested configs. In the shared config, use basename globs for overrides because Prettier resolves them from the Nix store.
-- **Taplo.** A root `.taplo.toml` replaces the shared config. Copy the [shared file](../.taplo.toml) to the project root for native discovery.
-- **markdownlint-cli2.** A project `.markdownlint-cli2.jsonc` overrides rules from the [shared CLI2 config](../.markdownlint-cli2.jsonc). Relative `customRules` and `markdownItPlugins` require `configPath = ".markdownlint-cli2.jsonc"`. For an explicit project config or native discovery, use `config.extends` with a workspace-relative copy of the [shared rules](../.markdownlint.jsonc).
+- A standalone **Prettier** config at the project root replaces the [shared config](../.prettierrc.json). The hook checks `.prettierrc.json` first, then follows [Prettier's order](https://prettier.io/docs/configuration) for standalone files. It disables EditorConfig. Use native discovery for manifest settings or nested configs. In the shared config, use basename globs for overrides because Prettier resolves them from the Nix store.
+- A root **Taplo** config (`.taplo.toml`) replaces the shared config. Copy the [shared file](../.taplo.toml) to the project root for native discovery.
+- A project **markdownlint-cli2** config (`.markdownlint-cli2.jsonc`) overrides rules from the [shared CLI2 config](../.markdownlint-cli2.jsonc). Relative `customRules` and `markdownItPlugins` require `configPath = ".markdownlint-cli2.jsonc"`. For an explicit project config or native discovery, use `config.extends` with a workspace-relative copy of the [shared rules](../.markdownlint.jsonc).
 
 Re-enter the dev shell after adding a root Prettier or Taplo config. For these hooks and Ruff, set `hooks.<name>.settings.configPath = ""` to use native discovery, or set it to a specific file.
 
