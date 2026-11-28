@@ -77,7 +77,7 @@
         mkLib =
           pkgs:
           import ./nix/lib.nix {
-            inherit pkgs git-hooks-nix;
+            inherit pkgs repo git-hooks-nix;
             nushell = packageAtLeast pkgs "nushell" "0.116";
             ruff = packageAtLeast pkgs "ruff" "0.17";
             uv = packageAtLeast pkgs "uv" "0.13";

@@ -4,8 +4,11 @@
 
 {
   pkgs,
+  repo,
   src,
   configEntry,
+  dprint,
+  dprintConfig,
   nodeTool,
   nu-check,
   nuCheckEntry,
@@ -20,16 +23,23 @@ let
   # Patched packages
   # ------------------------------------------------------------------------------------------------
   actionlint = pkgs.callPackage ../packages/actionlint.nix { };
-  dprint-plugin-markdown = pkgs.callPackage ../packages/dprint-plugin-markdown.nix { };
+
+  # ------------------------------------------------------------------------------------------------
+  # Linter configuration
+  # ------------------------------------------------------------------------------------------------
+  markdownlintConfig = lib.fileset.toSource {
+    inherit (repo) root;
+    fileset = lib.fileset.unions [
+      (lib.path.append repo.root ".markdownlint-cli2.jsonc")
+      (lib.path.append repo.root ".markdownlint.jsonc")
+    ];
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Formatter configuration
   # ------------------------------------------------------------------------------------------------
-  dprintConfig = import ./dprint-config.nix { inherit pkgs dprint-plugin-markdown; };
-
-  # A project config stays checkout-relative, since Prettier resolves `overrides` globs from the
-  # config file's directory.
-  projectConfig = file: shared: if builtins.pathExists "${src}/${file}" then file else "${shared}";
+  projectConfig =
+    file: if builtins.pathExists "${src}/${file}" then file else "${lib.path.append repo.root file}";
 
   # ------------------------------------------------------------------------------------------------
   # Shared hook settings
@@ -149,7 +159,7 @@ in
 
     dprint = {
       enable = true;
-      package = pkgs.dprint;
+      package = dprint;
       entry = "${lib.getExe config.hooks.dprint.package} fmt";
       args = [
         "--config=${dprintConfig}"
@@ -167,7 +177,7 @@ in
         "--no-globs"
       ];
       files = "\\.md$";
-      settings.configPath = "${../../.markdownlint-cli2.jsonc}";
+      settings.configPath = "${markdownlintConfig}/.markdownlint-cli2.jsonc";
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -254,7 +264,7 @@ in
     # ----------------------------------------------------------------------------------------------
     taplo = {
       entry = configEntry config.hooks.taplo [ "fmt" ];
-      settings.configPath = projectConfig ".taplo.toml" ../../.taplo.toml;
+      settings.configPath = projectConfig ".taplo.toml";
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -267,7 +277,7 @@ in
         "(^|/)pnpm-lock\\.yaml$"
       ];
       settings = {
-        configPath = projectConfig ".prettierrc.json" ../../.prettierrc.json;
+        configPath = projectConfig ".prettierrc.json";
         no-editorconfig = true;
       };
     };

@@ -56,11 +56,11 @@ preCommit = dk.preCommit {
 
 ### Use a project configuration file
 
-Prettier, Taplo, and markdownlint-cli2 use devkit's shared [Prettier style](../.prettierrc.json), [Taplo formatting](../.taplo.toml), and [markdownlint rules](../.markdownlint-cli2.jsonc). A `.prettierrc.json` or `.taplo.toml` at the source root replaces the shared file once the dev shell is re-entered, and a project `.markdownlint-cli2.jsonc` overrides individual shared rules.
+- A root **Prettier** config (`.prettierrc.json`) replaces the [shared config](../.prettierrc.json). The hook disables EditorConfig. Use basename globs in shared overrides because Prettier resolves them from the Nix store.
+- A root **Taplo** config (`.taplo.toml`) replaces the shared config. Copy the [shared file](../.taplo.toml) to the project root for native discovery.
+- A project **markdownlint-cli2** config (`.markdownlint-cli2.jsonc`) overrides rules from the [shared CLI2 config](../.markdownlint-cli2.jsonc). Relative `customRules` and `markdownItPlugins` require `configPath = ".markdownlint-cli2.jsonc"`. For an explicit project config or native discovery, use `config.extends` with a workspace-relative copy of the [shared rules](../.markdownlint.jsonc).
 
-Use basenames in the shared Prettier configuration's `overrides`, since Prettier resolves those globs from the configuration's Nix store directory.
-
-Set `hooks.<name>.settings.configPath` to point markdownlint-cli2, Prettier, Ruff, or Taplo at another file, or to `""` to let the tool find its own. A `.markdownlint-cli2.jsonc` that loads relative `customRules` or `markdownItPlugins` needs `configPath = ".markdownlint-cli2.jsonc"`, which drops the shared rules.
+Re-enter the dev shell after adding a root Prettier or Taplo config. For these hooks and Ruff, set `hooks.<name>.settings.configPath = ""` to use native discovery, or set it to a specific file.
 
 ### Add a spelling dictionary
 
@@ -72,13 +72,11 @@ doctoc fills a table of contents between `<!-- START doctoc -->` and `<!-- END d
 
 ### Format Markdown
 
-Let dprint format Markdown so it preserves indentation and blank lines in fenced examples and leaves embedded HTML intact. It formats every file that prek selects, including tracked Markdown files that match Git ignore rules. Keep the Markdown override in `.editorconfig` so editors preserve two-space hard line breaks.
+The dprint hook formats tracked Markdown even when it matches Git ignore rules. Native dprint can use or extend [`dprint.json`](../dprint.json), which downloads the same pinned WASM that the Nix hook loads from the store. Additional language plugins can reformat fenced examples. Pass editor buffers with `--stdin md`, since an absolute buffer path can be skipped by file selection.
 
 ### Check EditorConfig properties
 
-Because EditorConfig has no include mechanism and editors use it outside the dev shell, check in a copy of the shared `.editorconfig` and add language-specific sections that match the repository's formatters. The Nushell section also sets the indentation the checker enforces, since no hook formats Nushell.
-
-Exclude binary payloads that the checker treats as text through `hooks.editorconfig-checker.excludes`.
+Copy the shared [`.editorconfig`](../.editorconfig) for native discovery. Keep its Markdown exception for two-space hard line breaks. Use `hooks.editorconfig-checker.excludes` for binary payloads the checker treats as text.
 
 ### Check Nushell files
 
@@ -125,13 +123,7 @@ Start the repository's `.envrc` with a shell directive so shellcheck can lint it
 
 ## Run a lockfile-pinned tool
 
-ESLint and TypeScript already run from the project's pnpm lockfile, and mypy runs from its uv lockfile. Use `dk.nodeTool "<command>"` or `dk.uvTool "<command>"` when another hook needs project dependencies. For example, set `hooks.prettier.package = dk.nodeTool "prettier";` for Prettier plugins, or use `dk.nodeTool "cspell"` for npm dictionaries.
-
-Add `dk.nodeToolchain` and `dk.uvToolchain` to the dev shell to match the Node.js and pnpm used by `nodeTool` and the uv version that [`mkLib` selects](flake.md) for `uvTool`.
-
-```nix
-packages = builtins.attrValues dk.nodeToolchain ++ builtins.attrValues dk.uvToolchain;
-```
+ESLint and TypeScript use `pnpm-lock.yaml`, and mypy uses `uv.lock`. For hooks that need project dependencies, set the package via `dk.nodeTool` or `dk.uvTool`. Include the matching toolchain in the dev shell to use the same runtime versions interactively.
 
 ### Declare pnpm
 

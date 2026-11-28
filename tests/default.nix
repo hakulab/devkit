@@ -15,7 +15,7 @@ let
 in
 {
   actions = import ./actions { inherit pkgs dk repo; };
-  dprint-markdown = import ./dprint-markdown { inherit pkgs repo; };
+  dprint-markdown = import ./dprint-markdown { inherit pkgs dk; };
   pin-check = dk.nuTests {
     src = ./pin-check;
     libDirs = [ ../lib ];

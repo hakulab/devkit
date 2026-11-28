@@ -4,6 +4,7 @@
 
 {
   pkgs,
+  repo,
   git-hooks-nix,
   nushell,
   ruff,
@@ -61,12 +62,21 @@ let
   nuTests = import ./nu-test-check.nix { inherit pkgs nushell nu-test; };
 
   # ------------------------------------------------------------------------------------------------
+  # Markdown formatter
+  # ------------------------------------------------------------------------------------------------
+  inherit (pkgs) dprint;
+  dprintConfig = import ./dprint-config.nix { inherit pkgs repo; };
+
+  # ------------------------------------------------------------------------------------------------
   # Pre-commit hooks
   # ------------------------------------------------------------------------------------------------
   preCommit = import ./hooks {
     inherit
       pkgs
+      repo
       git-hooks-nix
+      dprint
+      dprintConfig
       nodeTool
       nu-check
       ruff
@@ -76,6 +86,8 @@ let
 in
 {
   inherit
+    dprint
+    dprintConfig
     mkNuApplication
     nodeTool
     nodeToolchain

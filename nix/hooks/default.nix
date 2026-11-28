@@ -4,7 +4,10 @@
 
 {
   pkgs,
+  repo,
   git-hooks-nix,
+  dprint,
+  dprintConfig,
   nodeTool,
   nu-check,
   ruff,
@@ -28,8 +31,11 @@ let
   baseline = import ./baseline.nix {
     inherit
       pkgs
+      repo
       src
       configEntry
+      dprint
+      dprintConfig
       nodeTool
       nu-check
       nuCheckEntry

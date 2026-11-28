@@ -1,0 +1,10 @@
+{
+  "markdown": {
+    "emphasisKind": "underscores",
+    "strongKind": "asterisks",
+    "codeBlock.preserveIndentation": true,
+    "codeBlock.preserveBlankLines": true,
+    "html.skipFormat": true
+  },
+  "plugins": ["https://plugins.dprint.dev/markdown-0.29.0.wasm"]
+}
