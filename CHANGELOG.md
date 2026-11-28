@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.10.0] - 2026-11-29
+
+### Added
+
+- _(hooks)_ Editors and CLI runs can use devkit's shared `.markdownlint.jsonc` rules and portable `dprint.json`. Nix consumers can use `dk.dprint` and `dk.dprintConfig` to match the hook's Markdown formatter. ([#149](https://github.com/hakulab/devkit/pull/149))
+
+[3.10.0]: https://github.com/hakulab/devkit/compare/v3.9.0...v3.10.0
+
 ## [3.9.0] - 2026-11-28
 
 ### Added
