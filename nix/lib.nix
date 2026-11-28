@@ -4,6 +4,7 @@
 
 {
   pkgs,
+  repo,
   git-hooks-nix,
   nushell,
   ruff,
@@ -64,7 +65,7 @@ let
   # Markdown formatter
   # ------------------------------------------------------------------------------------------------
   inherit (pkgs) dprint;
-  dprintConfig = import ./dprint-config.nix { inherit pkgs; };
+  dprintConfig = import ./dprint-config.nix { inherit pkgs repo; };
 
   # ------------------------------------------------------------------------------------------------
   # Pre-commit hooks
@@ -72,6 +73,7 @@ let
   preCommit = import ./hooks {
     inherit
       pkgs
+      repo
       git-hooks-nix
       dprint
       dprintConfig

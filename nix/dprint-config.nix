@@ -4,11 +4,12 @@
 
 {
   pkgs,
+  repo,
 }:
 
 let
   inherit (pkgs) lib;
-  config = lib.importJSON ../dprint.json;
+  config = lib.importJSON (lib.path.append repo.root "dprint.json");
   dprint-plugin-markdown = pkgs.callPackage ./packages/dprint-plugin-markdown.nix {
     url = lib.head config.plugins;
   };

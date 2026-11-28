@@ -4,6 +4,7 @@
 
 {
   pkgs,
+  repo,
   git-hooks-nix,
   dprint,
   dprintConfig,
@@ -30,6 +31,7 @@ let
   baseline = import ./baseline.nix {
     inherit
       pkgs
+      repo
       src
       configEntry
       dprint
