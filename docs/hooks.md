@@ -56,11 +56,17 @@ preCommit = dk.preCommit {
 
 ### Use a project configuration file
 
-Prettier, Taplo, and markdownlint-cli2 use devkit's shared [Prettier style](../.prettierrc.json), [Taplo formatting](../.taplo.toml), and [markdownlint rules](../.markdownlint-cli2.jsonc). A `.prettierrc.json` or `.taplo.toml` at the source root replaces the shared file once the dev shell is re-entered, and a project `.markdownlint-cli2.jsonc` overrides individual shared rules.
+Prettier, Taplo, and markdownlint-cli2 default to devkit's shared [Prettier style](../.prettierrc.json), [Taplo formatting](../.taplo.toml), and [markdownlint-cli2 config](../.markdownlint-cli2.jsonc). Re-enter the dev shell after adding a root Prettier or Taplo configuration so the corresponding hook picks it up.
+
+A standalone [Prettier configuration file](https://prettier.io/docs/configuration) at the project root replaces the shared file. The hook prefers `.prettierrc.json` if present and otherwise follows Prettier's order for standalone files. Keep one Prettier config at the project root for consistent editor and hook behavior. A JavaScript config such as `prettier.config.cjs` can load the shared JSON style from a workspace-relative path and export it with project overrides. The hook disables Prettier's EditorConfig integration, so put any formatting options that need to match in the Prettier config. To use a package manifest's `prettier` key or per-directory configuration, use native discovery with `configPath = ""`.
 
 Use basenames in the shared Prettier configuration's `overrides`, since Prettier resolves those globs from the configuration's Nix store directory.
 
-Set `hooks.<name>.settings.configPath` to point markdownlint-cli2, Prettier, Ruff, or Taplo at another file, or to `""` to let the tool find its own. A `.markdownlint-cli2.jsonc` that loads relative `customRules` or `markdownItPlugins` needs `configPath = ".markdownlint-cli2.jsonc"`, which drops the shared rules.
+A root `.taplo.toml` replaces the shared file. For editor and CLI discovery, copy devkit's [Taplo config](../.taplo.toml) to the project root and adapt it to the project.
+
+A project `.markdownlint-cli2.jsonc` overrides individual rules from the hook's base configuration. To share those rules with editors and direct CLI runs, make devkit's [pure rule file](../.markdownlint.jsonc) available in the workspace and set `config.extends` in the project `.markdownlint-cli2.jsonc` to its relative path. Keep project rule overrides beside `extends` and CLI2 options such as `gitignore` at the top level.
+
+Set `hooks.<name>.settings.configPath` to point markdownlint-cli2, Prettier, Ruff, or Taplo at another file, or to `""` to let the tool find its own. A `.markdownlint-cli2.jsonc` that loads relative `customRules` or `markdownItPlugins` needs `configPath = ".markdownlint-cli2.jsonc"`. In that case, use `config.extends` to retain the shared rules.
 
 ### Add a spelling dictionary
 
@@ -72,11 +78,13 @@ doctoc fills a table of contents between `<!-- START doctoc -->` and `<!-- END d
 
 ### Format Markdown
 
-Let dprint format Markdown so it preserves indentation and blank lines in fenced examples and leaves embedded HTML intact. It formats every file that prek selects, including tracked Markdown files that match Git ignore rules. Keep the Markdown override in `.editorconfig` so editors preserve two-space hard line breaks.
+Let dprint format Markdown so it preserves indentation and blank lines in fenced examples and leaves embedded HTML intact. The configuration loads only the Markdown plugin so other formatters leave fenced examples alone. The hook formats every file that prek selects, including tracked Markdown files that match Git ignore rules. Keep the Markdown override in `.editorconfig` so editors preserve two-space hard line breaks.
+
+For editor and CLI use on Nix, `devkit.lib.mkLib pkgs` exposes the hook's `dk.dprint` package and `dk.dprintConfig` file. For native dprint, including on Windows, use the portable [`dprint.json`](../dprint.json) as the workspace configuration or extend it from a project configuration. Both configurations use the same pinned Markdown WASM. When piping an editor buffer to `dprint fmt --config <config> --stdin md`, use `md` for the Markdown extension so file selection does not skip an absolute buffer path.
 
 ### Check EditorConfig properties
 
-Because EditorConfig has no include mechanism and editors use it outside the dev shell, check in a copy of the shared `.editorconfig` and add language-specific sections that match the repository's formatters. The Nushell section also sets the indentation the checker enforces, since no hook formats Nushell.
+Because EditorConfig has no include mechanism and editors use it outside the dev shell, check in a copy of the shared [`.editorconfig`](../.editorconfig) and add language-specific sections that match the repository's formatters. The Nushell section also sets the indentation the checker enforces, since no hook formats Nushell.
 
 Exclude binary payloads that the checker treats as text through `hooks.editorconfig-checker.excludes`.
 

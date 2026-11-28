@@ -4,6 +4,7 @@
 
 {
   pkgs,
+  url,
 }:
 
 pkgs.dprint-plugins.dprint-plugin-markdown.overrideAttrs (_: {
@@ -11,7 +12,7 @@ pkgs.dprint-plugins.dprint-plugin-markdown.overrideAttrs (_: {
   version = "0.29.0";
 
   src = pkgs.fetchurl {
-    url = "https://plugins.dprint.dev/markdown-0.29.0.wasm";
+    inherit url;
     hash = "sha256-cUrqdVXdmDGGG+Rm2osmstkjFtPN5VDvPh9jsx9OowI=";
   };
 })

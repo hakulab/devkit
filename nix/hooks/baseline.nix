@@ -6,6 +6,8 @@
   pkgs,
   src,
   configEntry,
+  dprint,
+  dprintConfig,
   nodeTool,
   nu-check,
   nuCheckEntry,
@@ -20,16 +22,45 @@ let
   # Patched packages
   # ------------------------------------------------------------------------------------------------
   actionlint = pkgs.callPackage ../packages/actionlint.nix { };
-  dprint-plugin-markdown = pkgs.callPackage ../packages/dprint-plugin-markdown.nix { };
+
+  # ------------------------------------------------------------------------------------------------
+  # Linter configuration
+  # ------------------------------------------------------------------------------------------------
+  markdownlintConfig = lib.fileset.toSource {
+    root = ../..;
+    fileset = lib.fileset.unions [
+      ../../.markdownlint-cli2.jsonc
+      ../../.markdownlint.jsonc
+    ];
+  };
 
   # ------------------------------------------------------------------------------------------------
   # Formatter configuration
   # ------------------------------------------------------------------------------------------------
-  dprintConfig = import ./dprint-config.nix { inherit pkgs dprint-plugin-markdown; };
+  projectConfig =
+    files: shared: lib.findFirst (file: builtins.pathExists "${src}/${file}") "${shared}" files;
 
-  # A project config stays checkout-relative, since Prettier resolves `overrides` globs from the
-  # config file's directory.
-  projectConfig = file: shared: if builtins.pathExists "${src}/${file}" then file else "${shared}";
+  # Keep .prettierrc.json first for existing consumers. The other standalone files follow Prettier.
+  prettierConfig = projectConfig [
+    ".prettierrc.json"
+    ".prettierrc"
+    ".prettierrc.yml"
+    ".prettierrc.yaml"
+    ".prettierrc.json5"
+    ".prettierrc.js"
+    "prettier.config.js"
+    ".prettierrc.ts"
+    "prettier.config.ts"
+    ".prettierrc.mjs"
+    "prettier.config.mjs"
+    ".prettierrc.mts"
+    "prettier.config.mts"
+    ".prettierrc.cjs"
+    "prettier.config.cjs"
+    ".prettierrc.cts"
+    "prettier.config.cts"
+    ".prettierrc.toml"
+  ] ../../.prettierrc.json;
 
   # ------------------------------------------------------------------------------------------------
   # Shared hook settings
@@ -149,7 +180,7 @@ in
 
     dprint = {
       enable = true;
-      package = pkgs.dprint;
+      package = dprint;
       entry = "${lib.getExe config.hooks.dprint.package} fmt";
       args = [
         "--config=${dprintConfig}"
@@ -167,7 +198,7 @@ in
         "--no-globs"
       ];
       files = "\\.md$";
-      settings.configPath = "${../../.markdownlint-cli2.jsonc}";
+      settings.configPath = "${markdownlintConfig}/.markdownlint-cli2.jsonc";
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -254,7 +285,7 @@ in
     # ----------------------------------------------------------------------------------------------
     taplo = {
       entry = configEntry config.hooks.taplo [ "fmt" ];
-      settings.configPath = projectConfig ".taplo.toml" ../../.taplo.toml;
+      settings.configPath = projectConfig [ ".taplo.toml" ] ../../.taplo.toml;
     };
 
     # ----------------------------------------------------------------------------------------------
@@ -267,7 +298,8 @@ in
         "(^|/)pnpm-lock\\.yaml$"
       ];
       settings = {
-        configPath = projectConfig ".prettierrc.json" ../../.prettierrc.json;
+        # Prettier resolves overrides from the config directory, so keep project paths relative.
+        configPath = prettierConfig;
         no-editorconfig = true;
       };
     };

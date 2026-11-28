@@ -5,6 +5,8 @@
 {
   pkgs,
   git-hooks-nix,
+  dprint,
+  dprintConfig,
   nodeTool,
   nu-check,
   ruff,
@@ -30,6 +32,8 @@ let
       pkgs
       src
       configEntry
+      dprint
+      dprintConfig
       nodeTool
       nu-check
       nuCheckEntry
