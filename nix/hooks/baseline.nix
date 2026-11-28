@@ -277,7 +277,6 @@ in
         "(^|/)pnpm-lock\\.yaml$"
       ];
       settings = {
-        # Prettier resolves overrides from the config directory, so keep project paths relative.
         configPath = projectConfig ".prettierrc.json";
         no-editorconfig = true;
       };
